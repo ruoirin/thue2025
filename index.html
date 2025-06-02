@@ -8,78 +8,78 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif; /* Using a common sans-serif font */
-            background-color: #f0f4f8; /* Light blue-gray background */
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
         }
         .card {
             background-color: white;
-            border-radius: 12px; /* More rounded corners */
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* Softer shadow */
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
             transition: all 0.3s ease-in-out;
-            overflow: hidden; /* Ensures content doesn't spill before expansion */
+            overflow: hidden;
         }
         .card-header {
-            padding: 1.25rem; /* 20px */
+            padding: 1.25rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #e5e7eb; /* Light gray border */
+            border-bottom: 1px solid #e5e7eb;
         }
         .card-header:hover {
-            background-color: #f9fafb; /* Very light gray on hover */
+            background-color: #f9fafb;
         }
         .card-title {
             font-weight: 600;
-            color: #1e3a8a; /* Darker blue for titles */
+            color: #1e3a8a;
         }
         .card-content {
-            padding: 0 1.25rem; /* 20px horizontal padding */
+            padding: 0 1.25rem;
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out;
         }
         .card-content.open {
-            max-height: 1000px; /* Large enough for content */
+            max-height: 1000px;
             padding-top: 1.25rem;
             padding-bottom: 1.25rem;
         }
         .date-badge {
-            background-color: #e0f2fe; /* Light sky blue */
-            color: #0c4a6e; /* Dark sky blue */
+            background-color: #e0f2fe;
+            color: #0c4a6e;
             padding: 0.25rem 0.75rem;
-            border-radius: 9999px; /* Pill shape */
-            font-size: 0.875rem; /* 14px */
+            border-radius: 9999px;
+            font-size: 0.875rem;
             font-weight: 500;
         }
         .icon {
-            margin-right: 0.75rem; /* 12px */
-            color: #3b82f6; /* Primary blue */
+            margin-right: 0.75rem;
+            color: #3b82f6;
         }
         .conclusion-card {
-            background-color: #e0f2fe; /* Light blue background for conclusion */
-            border-left: 4px solid #3b82f6; /* Blue left border */
+            background-color: #e0f2fe;
+            border-left: 4px solid #3b82f6;
         }
         .main-title {
-            color: #1e3a8a; /* Dark blue */
-            font-size: 2.25rem; /* 36px */
+            color: #1e3a8a;
+            font-size: 2.25rem;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 1rem; /* 16px */
+            margin-bottom: 1rem;
         }
         .subtitle {
-            color: #374151; /* Cool gray */
-            font-size: 1.125rem; /* 18px */
+            color: #374151;
+            font-size: 1.125rem;
             text-align: center;
-            margin-bottom: 2.5rem; /* 40px */
+            margin-bottom: 2.5rem;
         }
         .section-title {
-            color: #1e40af; /* Medium blue */
-            font-size: 1.75rem; /* 28px */
+            color: #1e40af;
+            font-size: 1.75rem;
             font-weight: 600;
-            margin-bottom: 1.5rem; /* 24px */
-            padding-bottom: 0.5rem; /* 8px */
-            border-bottom: 2px solid #93c5fd; /* Lighter blue border */
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #93c5fd;
         }
         .arrow-icon {
             transition: transform 0.3s ease-in-out;
@@ -89,13 +89,115 @@
         }
         ul {
             list-style-type: disc;
-            padding-left: 1.5rem; /* 24px */
+            padding-left: 1.5rem;
         }
         li {
-            margin-bottom: 0.5rem; /* 8px */
+            margin-bottom: 0.5rem;
         }
-        /* Add a specific font for better Vietnamese display if needed */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Chatbot Styles */
+        #chatbot-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #1e3a8a;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        #chatbot-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            max-width: 90vw;
+            height: 500px;
+            max-height: 70vh;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 999;
+        }
+        #chatbot-container.open {
+            display: flex;
+        }
+        #chatbot-header {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #close-chatbot-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        #chatbot-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* 12px */
+        }
+        .chat-message {
+            padding: 0.5rem 0.75rem; /* 8px 12px */
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #e0f2fe; /* Light sky blue */
+            color: #0c4a6e; /* Dark sky blue */
+            align-self: flex-end;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background-color: #f3f4f6; /* Light gray */
+            color: #1f2937; /* Dark gray */
+            align-self: flex-start;
+            margin-right: 20%;
+        }
+        #chatbot-input-container {
+            display: flex;
+            padding: 0.75rem; /* 12px */
+            border-top: 1px solid #e5e7eb;
+        }
+        #chatbot-input {
+            flex-grow: 1;
+            border: 1px solid #d1d5db; /* Gray border */
+            padding: 0.5rem 0.75rem; /* 8px 12px */
+            border-radius: 6px;
+            margin-right: 0.5rem; /* 8px */
+        }
+        #chatbot-send-btn {
+            background-color: #2563eb; /* Blue */
+            color: white;
+            padding: 0.5rem 1rem; /* 8px 16px */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #chatbot-send-btn:hover {
+            background-color: #1d4ed8; /* Darker blue */
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -271,6 +373,24 @@
         </section>
     </div>
 
+    <div id="chatbot-toggle-btn">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <div id="chatbot-container">
+        <div id="chatbot-header">
+            <span>Chatbot Thuế 2025</span>
+            <button id="close-chatbot-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatbot-messages">
+            <div class="chat-message bot-message">Xin chào! Tôi có thể giúp gì cho bạn về các thay đổi luật thuế và hóa đơn 2025? Hãy thử hỏi về "khấu trừ thuế", "hủy hóa đơn", hoặc "hộ kinh doanh".</div>
+        </div>
+        <div id="chatbot-input-container">
+            <input type="text" id="chatbot-input" placeholder="Nhập câu hỏi của bạn...">
+            <button id="chatbot-send-btn">Gửi</button>
+        </div>
+    </div>
+
     <script>
         function toggleCard(headerElement) {
             const content = headerElement.nextElementSibling;
@@ -279,17 +399,124 @@
                 content.classList.remove('open');
                 arrow.classList.remove('rotate');
             } else {
-                // Optional: Close other open cards before opening the current one
-                // document.querySelectorAll('.card-content.open').forEach(openContent => {
-                //     if (openContent !== content) {
-                //        openContent.classList.remove('open');
-                //        openContent.previousElementSibling.querySelector('.arrow-icon').classList.remove('rotate');
-                //     }
-                // });
                 content.classList.add('open');
                 arrow.classList.add('rotate');
             }
         }
+
+        // Chatbot Script
+        const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const closeChatbotBtn = document.getElementById('close-chatbot-btn');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSendBtn = document.getElementById('chatbot-send-btn');
+
+        const knowledgeBase = {
+            "hello": "Xin chào! Tôi có thể giúp gì cho bạn về các thay đổi luật thuế và hóa đơn 2025?",
+            "chào": "Xin chào! Tôi có thể giúp gì cho bạn về các thay đổi luật thuế và hóa đơn 2025?",
+            "khấu trừ thuế": "Để được khấu trừ thuế GTGT đầu vào, bạn bắt buộc phải sử dụng chứng từ thanh toán không dùng tiền mặt cho mọi hàng hóa, dịch vụ. Quy định này có hiệu lực từ 01/7/2025.",
+            "khấu trừ gtgts": "Để được khấu trừ thuế GTGT đầu vào, bạn bắt buộc phải sử dụng chứng từ thanh toán không dùng tiền mặt cho mọi hàng hóa, dịch vụ. Quy định này có hiệu lực từ 01/7/2025.",
+            "thanh toán không dùng tiền mặt": "Việc thanh toán không dùng tiền mặt là bắt buộc để được khấu trừ thuế GTGT đầu vào, áp dụng từ 01/7/2025.",
+            "kê khai bổ sung": "Nếu sai sót làm tăng thuế phải nộp/giảm thuế được hoàn, phải kê khai bổ sung trong tháng/quý phát sinh sai sót. Nếu chỉ thay đổi số thuế khấu trừ chuyển kỳ sau, kê khai tại kỳ phát hiện. Hóa đơn bỏ sót được kê khai vào kỳ phát hiện. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
+            "hoàn thuế": "Doanh nghiệp sản xuất, kinh doanh hàng hóa chịu thuế suất 5% có thể được hoàn thuế nếu thuế GTGT đầu vào còn được khấu trừ trên 300 triệu đồng sau 12 tháng (hoặc 4 quý). Điều kiện hoàn thuế mới còn yêu cầu bên bán phải kê khai và nộp đủ thuế. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
+            "điều kiện hoàn thuế": "Để được hoàn thuế GTGT, bên mua phải đảm bảo rằng bên bán đã kê khai và nộp đủ thuế trên hóa đơn GTGT đó. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
+            "hủy hóa đơn": "Từ 01/6/2025, khái niệm hủy hóa đơn điện tử sẽ bị bãi bỏ. Khi có sai sót, doanh nghiệp phải sử dụng hóa đơn điều chỉnh hoặc hóa đơn thay thế, cần có sự thống nhất và ký số của cả hai bên. (Nghị định 70/2025/NĐ-CP)",
+            "hóa đơn sai": "Nếu hóa đơn điện tử bị sai, từ 01/6/2025, bạn phải lập hóa đơn điều chỉnh hoặc hóa đơn thay thế, không còn hủy hóa đơn. Cần có ký số của cả bên mua và bán. (Nghị định 70/2025/NĐ-CP)",
+            "hộ kinh doanh": "Hộ kinh doanh có doanh thu từ 1 tỷ đồng/năm trở lên sẽ không còn được áp dụng thuế khoán mà bắt buộc chuyển sang kê khai hoặc phải xuất hóa đơn. Áp dụng từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
+            "doanh thu 1 tỷ": "Hộ kinh doanh có doanh thu từ 1 tỷ đồng/năm (theo doanh thu khoán năm trước hoặc cơ quan thuế xác định) phải chuyển sang kê khai hoặc xuất hóa đơn từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
+            "máy tính tiền": "Một số ngành nghề bán lẻ, dịch vụ trực tiếp cho người tiêu dùng (nhà hàng, khách sạn) và hộ kinh doanh khoán (doanh thu > 1 tỷ/năm, thuộc ngành nghề quy định) bắt buộc sử dụng hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
+            "hđđt từ mtt": "Hóa đơn điện tử từ máy tính tiền (HĐĐT từ MTT) là hóa đơn được lập tại thời điểm thu tiền, có kết nối dữ liệu với cơ quan thuế. Bắt buộc cho một số ngành nghề và hộ kinh doanh đủ điều kiện từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
+            "hóa đơn xuất khẩu": "Thời điểm lập hóa đơn xuất khẩu được nới lỏng, chậm nhất không quá 1 ngày làm việc kể từ ngày hàng hóa được thông quan. Trước đây là phải lập vào đúng ngày thông quan. (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
+            "thông tin trên hóa đơn": "Hóa đơn cần thể hiện đầy đủ thông tin người mua (tên, địa chỉ, MST hoặc số định danh/CCCD), trừ một số ngành đặc thù. Dịch vụ vận tải phải ghi biển kiểm soát, hành trình. (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
+            "chiết khấu": "Nghị định 70/2025/NĐ-CP (hiệu lực 01/6/2025) có quy định cụ thể hơn về việc lập hóa đơn cho hàng hóa chiết khấu, hàng trả lại, giải quyết các khó khăn trước đây.",
+            "thời điểm lập hóa đơn dịch vụ": "Một số dịch vụ đặc thù (vận tải, viễn thông,...) được phép đối soát và lập hóa đơn trong 7 ngày theo thỏa thuận (không quá ngày kê khai). Dầu thô/khí thiên nhiên lập khi xác định tiêu thụ theo giá (không quá thời điểm kê khai). (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
+            "luật thuế gtgts": "Luật Thuế Giá trị gia tăng 2025 (Luật số 48/2024) có hiệu lực từ 01/7/2025, mang đến nhiều thay đổi quan trọng về khấu trừ và hoàn thuế GTGT.",
+            "nghị định 70": "Nghị định 70/2025/NĐ-CP, có hiệu lực từ 01/6/2025, sửa đổi, bổ sung quy định về hóa đơn chứng từ, đặc biệt là hóa đơn điện tử.",
+            "cảm ơn": "Rất vui khi được giúp bạn! Nếu có câu hỏi khác, đừng ngần ngại hỏi nhé.",
+            "bye": "Tạm biệt! Chúc bạn một ngày tốt lành."
+        };
+
+        chatbotToggleBtn.addEventListener('click', () => {
+            chatbotContainer.classList.toggle('open');
+            if (chatbotContainer.classList.contains('open')) {
+                chatbotToggleBtn.innerHTML = '<i class="fas fa-times"></i>'; // Change to close icon
+            } else {
+                chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>'; // Change back to chat icon
+            }
+        });
+
+        closeChatbotBtn.addEventListener('click', () => {
+            chatbotContainer.classList.remove('open');
+            chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>'; // Ensure toggle button icon resets
+        });
+
+        chatbotSendBtn.addEventListener('click', handleUserInput);
+        chatbotInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
+        function handleUserInput() {
+            const userInput = chatbotInput.value.trim().toLowerCase();
+            if (userInput === "") return;
+
+            addMessageToUI(chatbotInput.value, 'user'); // Display original case for user message
+            chatbotInput.value = "";
+
+            const botResponse = getBotResponse(userInput);
+            setTimeout(() => { // Simulate bot thinking
+                 addMessageToUI(botResponse, 'bot');
+            }, 500);
+        }
+
+        function addMessageToUI(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = text;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight; // Scroll to the latest message
+        }
+
+        function getBotResponse(userInput) {
+            userInput = userInput.toLowerCase(); // Ensure comparison is case-insensitive
+            let bestMatch = null;
+            let highestScore = 0;
+
+            for (const keyword in knowledgeBase) {
+                const keywords = keyword.split(" "); // Allow for multi-word keywords
+                let currentScore = 0;
+                keywords.forEach(kw => {
+                    if (userInput.includes(kw)) {
+                        currentScore++;
+                    }
+                });
+                
+                // Prioritize exact full phrase matches
+                if (userInput === keyword) {
+                    currentScore = keywords.length * 2; // Give higher weight to exact match
+                }
+
+
+                if (currentScore > highestScore) {
+                    highestScore = currentScore;
+                    bestMatch = knowledgeBase[keyword];
+                }
+            }
+            
+            if (bestMatch && highestScore > 0) return bestMatch;
+
+            // More generic check if no strong keyword match
+            if (userInput.includes("ngày hiệu lực") || userInput.includes("khi nào áp dụng")) {
+                 if (userInput.includes("luật thuế gtgt")) return knowledgeBase["luật thuế gtgts"];
+                 if (userInput.includes("nghị định 70")) return knowledgeBase["nghị định 70"];
+                 return "Bạn muốn hỏi về ngày hiệu lực của văn bản nào cụ thể (Luật thuế GTGT hay Nghị định 70)?";
+            }
+
+            return "Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể thử hỏi bằng các từ khóa như 'khấu trừ thuế', 'hủy hóa đơn', 'hộ kinh doanh', 'ngày hiệu lực luật thuế GTGT', 'ngày hiệu lực nghị định 70'.";
+        }
+
     </script>
 </body>
 </html>
