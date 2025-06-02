@@ -392,131 +392,158 @@
     </div>
 
     <script>
-        function toggleCard(headerElement) {
-            const content = headerElement.nextElementSibling;
-            const arrow = headerElement.querySelector('.arrow-icon');
-            if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                arrow.classList.remove('rotate');
-            } else {
-                content.classList.add('open');
-                arrow.classList.add('rotate');
+        // Đặt đoạn mã này bên trong thẻ <script> trong file index.html của bạn
+
+let qaData = []; // Biến này sẽ lưu trữ dữ liệu Q&A từ tệp JSON
+
+const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+const chatbotContainer = document.getElementById('chatbot-container');
+const closeChatbotBtn = document.getElementById('close-chatbot-btn');
+const chatbotMessages = document.getElementById('chatbot-messages');
+const chatbotInput = document.getElementById('chatbot-input');
+const chatbotSendBtn = document.getElementById('chatbot-send-btn');
+
+// Hàm để tải dữ liệu Q&A từ tệp JSON
+async function loadQAData() {
+    try {
+        // Sử dụng tên tệp JSON của bạn: 'chatbot.json'
+        const response = await fetch('chatbot.json');
+        if (!response.ok) {
+            throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+        }
+        qaData = await response.json(); // qaData bây giờ là mảng các đối tượng Q&A
+        console.log("Dữ liệu Q&A đã được tải thành công!", qaData);
+
+        // Chỉ thêm tin nhắn chào mừng nếu chưa có hoặc chỉ có tin nhắn mặc định ban đầu
+        if (chatbotMessages.children.length === 0 ||
+            (chatbotMessages.children.length > 0 && chatbotMessages.children[0].classList.contains('bot-message') && chatbotMessages.children[0].textContent.includes("Tôi có thể giúp gì"))) {
+             // Xóa tin nhắn chào mừng cũ nếu có
+            if (chatbotMessages.children.length > 0 && chatbotMessages.children[0].classList.contains('bot-message') && chatbotMessages.children[0].textContent.includes("Tôi có thể giúp gì")) {
+                chatbotMessages.innerHTML = ''; // Xóa các tin nhắn cũ
+            }
+            addMessageToUI("Xin chào! Tôi đã sẵn sàng trả lời các câu hỏi về Luật Thuế & Hóa Đơn 2025. Bạn muốn hỏi gì?", 'bot');
+        }
+
+    } catch (error) {
+        console.error("Không thể tải dữ liệu Q&A:", error);
+        addMessageToUI("Xin lỗi, tôi không thể tải dữ liệu hỏi đáp vào lúc này. Vui lòng thử lại sau.", 'bot');
+    }
+}
+
+// Hàm xử lý tin nhắn của người dùng và tìm câu trả lời
+function getBotResponse(userInput) {
+    userInput = userInput.toLowerCase().trim();
+    let bestMatchAnswer = null;
+    let highestScore = 0;
+
+    if (qaData.length === 0) {
+        return "Dữ liệu hỏi đáp chưa sẵn sàng. Vui lòng đợi trong giây lát hoặc thử làm mới trang.";
+    }
+
+    for (const item of qaData) {
+        const questionText = item.question.toLowerCase();
+        let currentScore = 0;
+
+        // 1. Ưu tiên khớp chính xác hoàn toàn
+        if (userInput === questionText) {
+            currentScore = 100; // Điểm cao nhất cho khớp chính xác
+        } else {
+            // 2. Logic khớp từ khóa:
+            const userKeywords = userInput.split(" ").filter(k => k.length > 1); // Từ khóa của người dùng (bỏ qua từ ngắn)
+            const questionMainKeywords = questionText.split(" ").filter(k => k.length > 2); // Từ khóa chính của câu hỏi trong data
+
+            let matchedUserKeywords = 0;
+            userKeywords.forEach(ukw => {
+                if (questionText.includes(ukw)) {
+                    matchedUserKeywords++;
+                }
+            });
+            currentScore = matchedUserKeywords * 10; // Mỗi từ khóa người dùng khớp được 10 điểm
+
+            // 3. Thưởng thêm nếu nhiều từ khóa chính của câu hỏi xuất hiện trong input người dùng
+            let bonusScore = 0;
+            questionMainKeywords.forEach(qkw => {
+                if (userInput.includes(qkw)) {
+                    bonusScore++;
+                }
+            });
+            currentScore += bonusScore * 2; // Thưởng thêm điểm
+
+            // 4. Nếu câu hỏi trong data chứa hoàn toàn input của người dùng (và input có độ dài nhất định)
+            if (questionText.includes(userInput) && userInput.length > 5) {
+                currentScore = Math.max(currentScore, 50); // Cho điểm tương đối cao
             }
         }
 
-        // Chatbot Script
-        const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
-        const chatbotContainer = document.getElementById('chatbot-container');
-        const closeChatbotBtn = document.getElementById('close-chatbot-btn');
-        const chatbotMessages = document.getElementById('chatbot-messages');
-        const chatbotInput = document.getElementById('chatbot-input');
-        const chatbotSendBtn = document.getElementById('chatbot-send-btn');
+        if (currentScore > highestScore) {
+            highestScore = currentScore;
+            bestMatchAnswer = item.answer;
+        }
+    }
 
-        const knowledgeBase = {
-            "hello": "Xin chào! Tôi có thể giúp gì cho bạn về các thay đổi luật thuế và hóa đơn 2025?",
-            "chào": "Xin chào! Tôi có thể giúp gì cho bạn về các thay đổi luật thuế và hóa đơn 2025?",
-            "khấu trừ thuế": "Để được khấu trừ thuế GTGT đầu vào, bạn bắt buộc phải sử dụng chứng từ thanh toán không dùng tiền mặt cho mọi hàng hóa, dịch vụ. Quy định này có hiệu lực từ 01/7/2025.",
-            "khấu trừ gtgts": "Để được khấu trừ thuế GTGT đầu vào, bạn bắt buộc phải sử dụng chứng từ thanh toán không dùng tiền mặt cho mọi hàng hóa, dịch vụ. Quy định này có hiệu lực từ 01/7/2025.",
-            "thanh toán không dùng tiền mặt": "Việc thanh toán không dùng tiền mặt là bắt buộc để được khấu trừ thuế GTGT đầu vào, áp dụng từ 01/7/2025.",
-            "kê khai bổ sung": "Nếu sai sót làm tăng thuế phải nộp/giảm thuế được hoàn, phải kê khai bổ sung trong tháng/quý phát sinh sai sót. Nếu chỉ thay đổi số thuế khấu trừ chuyển kỳ sau, kê khai tại kỳ phát hiện. Hóa đơn bỏ sót được kê khai vào kỳ phát hiện. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
-            "hoàn thuế": "Doanh nghiệp sản xuất, kinh doanh hàng hóa chịu thuế suất 5% có thể được hoàn thuế nếu thuế GTGT đầu vào còn được khấu trừ trên 300 triệu đồng sau 12 tháng (hoặc 4 quý). Điều kiện hoàn thuế mới còn yêu cầu bên bán phải kê khai và nộp đủ thuế. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
-            "điều kiện hoàn thuế": "Để được hoàn thuế GTGT, bên mua phải đảm bảo rằng bên bán đã kê khai và nộp đủ thuế trên hóa đơn GTGT đó. (Luật Thuế GTGT 2025, hiệu lực 01/7/2025)",
-            "hủy hóa đơn": "Từ 01/6/2025, khái niệm hủy hóa đơn điện tử sẽ bị bãi bỏ. Khi có sai sót, doanh nghiệp phải sử dụng hóa đơn điều chỉnh hoặc hóa đơn thay thế, cần có sự thống nhất và ký số của cả hai bên. (Nghị định 70/2025/NĐ-CP)",
-            "hóa đơn sai": "Nếu hóa đơn điện tử bị sai, từ 01/6/2025, bạn phải lập hóa đơn điều chỉnh hoặc hóa đơn thay thế, không còn hủy hóa đơn. Cần có ký số của cả bên mua và bán. (Nghị định 70/2025/NĐ-CP)",
-            "hộ kinh doanh": "Hộ kinh doanh có doanh thu từ 1 tỷ đồng/năm trở lên sẽ không còn được áp dụng thuế khoán mà bắt buộc chuyển sang kê khai hoặc phải xuất hóa đơn. Áp dụng từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
-            "doanh thu 1 tỷ": "Hộ kinh doanh có doanh thu từ 1 tỷ đồng/năm (theo doanh thu khoán năm trước hoặc cơ quan thuế xác định) phải chuyển sang kê khai hoặc xuất hóa đơn từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
-            "máy tính tiền": "Một số ngành nghề bán lẻ, dịch vụ trực tiếp cho người tiêu dùng (nhà hàng, khách sạn) và hộ kinh doanh khoán (doanh thu > 1 tỷ/năm, thuộc ngành nghề quy định) bắt buộc sử dụng hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
-            "hđđt từ mtt": "Hóa đơn điện tử từ máy tính tiền (HĐĐT từ MTT) là hóa đơn được lập tại thời điểm thu tiền, có kết nối dữ liệu với cơ quan thuế. Bắt buộc cho một số ngành nghề và hộ kinh doanh đủ điều kiện từ 01/6/2025. (Nghị định 70/2025/NĐ-CP)",
-            "hóa đơn xuất khẩu": "Thời điểm lập hóa đơn xuất khẩu được nới lỏng, chậm nhất không quá 1 ngày làm việc kể từ ngày hàng hóa được thông quan. Trước đây là phải lập vào đúng ngày thông quan. (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
-            "thông tin trên hóa đơn": "Hóa đơn cần thể hiện đầy đủ thông tin người mua (tên, địa chỉ, MST hoặc số định danh/CCCD), trừ một số ngành đặc thù. Dịch vụ vận tải phải ghi biển kiểm soát, hành trình. (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
-            "chiết khấu": "Nghị định 70/2025/NĐ-CP (hiệu lực 01/6/2025) có quy định cụ thể hơn về việc lập hóa đơn cho hàng hóa chiết khấu, hàng trả lại, giải quyết các khó khăn trước đây.",
-            "thời điểm lập hóa đơn dịch vụ": "Một số dịch vụ đặc thù (vận tải, viễn thông,...) được phép đối soát và lập hóa đơn trong 7 ngày theo thỏa thuận (không quá ngày kê khai). Dầu thô/khí thiên nhiên lập khi xác định tiêu thụ theo giá (không quá thời điểm kê khai). (Nghị định 70/2025/NĐ-CP, hiệu lực 01/6/2025)",
-            "luật thuế gtgts": "Luật Thuế Giá trị gia tăng 2025 (Luật số 48/2024) có hiệu lực từ 01/7/2025, mang đến nhiều thay đổi quan trọng về khấu trừ và hoàn thuế GTGT.",
-            "nghị định 70": "Nghị định 70/2025/NĐ-CP, có hiệu lực từ 01/6/2025, sửa đổi, bổ sung quy định về hóa đơn chứng từ, đặc biệt là hóa đơn điện tử.",
-            "cảm ơn": "Rất vui khi được giúp bạn! Nếu có câu hỏi khác, đừng ngần ngại hỏi nhé.",
-            "bye": "Tạm biệt! Chúc bạn một ngày tốt lành."
-        };
+    if (bestMatchAnswer && highestScore > 10) { // Cần có một mức điểm tối thiểu để coi là khớp (ví dụ > 10)
+        return bestMatchAnswer;
+    }
 
+    // Các câu trả lời fallback (có thể giữ lại hoặc tích hợp vào JSON)
+    if (userInput.includes("cảm ơn")) return "Rất vui khi được giúp bạn! Nếu có câu hỏi khác, đừng ngần ngại hỏi nhé.";
+    if (userInput.includes("bye") || userInput.includes("tạm biệt")) return "Tạm biệt! Chúc bạn một ngày tốt lành.";
+
+    return "Xin lỗi, tôi không tìm thấy thông tin phù hợp cho câu hỏi của bạn. Bạn có thể thử diễn đạt lại câu hỏi một cách cụ thể hơn hoặc sử dụng các từ khóa chính xác hơn không?";
+}
+
+// Hàm hiển thị tin nhắn lên giao diện chatbot
+function addMessageToUI(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
+    messageDiv.textContent = text;
+    chatbotMessages.appendChild(messageDiv);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight; // Cuộn xuống tin nhắn mới nhất
+}
+
+// Hàm xử lý khi người dùng gửi tin nhắn
+function handleUserInput() {
+    const userInputText = chatbotInput.value.trim();
+    if (userInputText === "") return;
+
+    addMessageToUI(userInputText, 'user'); // Hiển thị tin nhắn người dùng
+    chatbotInput.value = ""; // Xóa nội dung input
+
+    const botResponseText = getBotResponse(userInputText);
+    setTimeout(() => { // Giả lập bot đang "suy nghĩ"
+         addMessageToUI(botResponseText, 'bot');
+    }, 500);
+}
+
+// Chạy khi toàn bộ trang HTML đã được tải
+document.addEventListener('DOMContentLoaded', () => {
+    loadQAData(); // Tải dữ liệu Q&A ngay khi trang được tải
+
+    // Gắn các sự kiện cho các nút chatbot
+    // Đảm bảo các biến chatbotToggleBtn, closeChatbotBtn, chatbotSendBtn, chatbotInput đã được lấy ở trên
+    if (chatbotToggleBtn) {
         chatbotToggleBtn.addEventListener('click', () => {
             chatbotContainer.classList.toggle('open');
             if (chatbotContainer.classList.contains('open')) {
-                chatbotToggleBtn.innerHTML = '<i class="fas fa-times"></i>'; // Change to close icon
+                chatbotToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
             } else {
-                chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>'; // Change back to chat icon
+                chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>';
             }
         });
-
+    }
+    if(closeChatbotBtn) {
         closeChatbotBtn.addEventListener('click', () => {
             chatbotContainer.classList.remove('open');
-            chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>'; // Ensure toggle button icon resets
+            if(chatbotToggleBtn) chatbotToggleBtn.innerHTML = '<i class="fas fa-comments"></i>';
         });
-
-        chatbotSendBtn.addEventListener('click', handleUserInput);
-        chatbotInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleUserInput();
-            }
-        });
-
-        function handleUserInput() {
-            const userInput = chatbotInput.value.trim().toLowerCase();
-            if (userInput === "") return;
-
-            addMessageToUI(chatbotInput.value, 'user'); // Display original case for user message
-            chatbotInput.value = "";
-
-            const botResponse = getBotResponse(userInput);
-            setTimeout(() => { // Simulate bot thinking
-                 addMessageToUI(botResponse, 'bot');
-            }, 500);
+    }
+    if(chatbotSendBtn) chatbotSendBtn.addEventListener('click', handleUserInput);
+    if(chatbotInput) chatbotInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            handleUserInput();
         }
-
-        function addMessageToUI(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
-            messageDiv.textContent = text;
-            chatbotMessages.appendChild(messageDiv);
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight; // Scroll to the latest message
-        }
-
-        function getBotResponse(userInput) {
-            userInput = userInput.toLowerCase(); // Ensure comparison is case-insensitive
-            let bestMatch = null;
-            let highestScore = 0;
-
-            for (const keyword in knowledgeBase) {
-                const keywords = keyword.split(" "); // Allow for multi-word keywords
-                let currentScore = 0;
-                keywords.forEach(kw => {
-                    if (userInput.includes(kw)) {
-                        currentScore++;
-                    }
-                });
-                
-                // Prioritize exact full phrase matches
-                if (userInput === keyword) {
-                    currentScore = keywords.length * 2; // Give higher weight to exact match
-                }
-
-
-                if (currentScore > highestScore) {
-                    highestScore = currentScore;
-                    bestMatch = knowledgeBase[keyword];
-                }
-            }
-            
-            if (bestMatch && highestScore > 0) return bestMatch;
-
-            // More generic check if no strong keyword match
-            if (userInput.includes("ngày hiệu lực") || userInput.includes("khi nào áp dụng")) {
-                 if (userInput.includes("luật thuế gtgt")) return knowledgeBase["luật thuế gtgts"];
-                 if (userInput.includes("nghị định 70")) return knowledgeBase["nghị định 70"];
-                 return "Bạn muốn hỏi về ngày hiệu lực của văn bản nào cụ thể (Luật thuế GTGT hay Nghị định 70)?";
-            }
-
-            return "Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể thử hỏi bằng các từ khóa như 'khấu trừ thuế', 'hủy hóa đơn', 'hộ kinh doanh', 'ngày hiệu lực luật thuế GTGT', 'ngày hiệu lực nghị định 70'.";
-        }
-
+    });
+});
     </script>
 </body>
 </html>
